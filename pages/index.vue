@@ -17,6 +17,10 @@
     </p>
 
     <Greet></Greet>
+
+    <NuxtLink to="/sharing/simple" class="text-lg text-[#00DC82]">
+      Go to the sharing example
+    </NuxtLink>
   </div>
 </template>
 

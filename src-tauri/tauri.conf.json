@@ -1,7 +1,7 @@
 {
-  "productName": "tauri-nuxt",
+  "productName": "secret-sharing-app",
   "version": "0.0.0",
-  "identifier": "me.binau.dev.tauri-nuxt",
+  "identifier": "me.binau.dev.secret-sharing-app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run generate",
@@ -12,7 +12,7 @@
       {
         "fullscreen": false,
         "resizable": true,
-        "title": "tauri-nuxt",
+        "title": "Secret Sharing",
         "width": 800,
         "height": 600
       }

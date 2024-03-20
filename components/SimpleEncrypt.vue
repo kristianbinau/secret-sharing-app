@@ -1,5 +1,5 @@
 <template>
-  <UForm :schema="formSchema" :state="state" @submit="onSubmit">
+  <UForm :schema="formSchema" :validate="validate" :state="state" @submit="onSubmit">
     <UFormGroup label="Secret" name="secret" class="mb-3">
       <UTextarea
         v-model="state.secret"
@@ -28,12 +28,15 @@
     <h2 class="mb-2">Shares</h2>
 
     <div class="flex flex-col gap-3">
-      <UTextarea
-        v-for="share in shares"
-        autoresize
-        readonly
-        :model-value="share"
-      />
+      <UTooltip v-for="share in shares" text="Click to copy">
+        <UTextarea
+          autoresize
+          readonly
+          :model-value="share"
+          @click="copyToClipboard(share)"
+          class="blur-sm hover:blur-none focus-within:blur-none active:blur-none flex-grow"
+        />
+      </UTooltip>
     </div>
   </div>
 </template>
@@ -42,22 +45,40 @@
 import { ref } from "vue";
 import { z } from "zod";
 import { invoke } from "@tauri-apps/api/core";
+import type { FormError } from "#ui/types";
 
-const formSchema = z
-  .object({
-    secret: z.string(),
-    requiredShares: z.number().int().positive().max(255),
-    generatedShares: z.number().int().positive().max(255),
-  })
-  .refine((schema) => {
-    return schema.requiredShares <= schema.generatedShares;
-  }, "Generated shares must be greater than or equal to required shares.");
+const toast = useToast();
+
+/**
+ * Schema
+ */
+const formSchema = z.object({
+  secret: z.string(),
+  requiredShares: z.number().int().positive().max(255),
+  generatedShares: z.number().int().positive().max(255),
+});
 type Form = z.infer<typeof formSchema>;
 
-const state = ref<Form>({ secret: "", requiredShares: 3, generatedShares: 5 });
+const validate = (state: any): FormError[] => {
+  const errors = [];
+  if (state.generatedShares < state.requiredShares) {
+    errors.push({
+      path: "generatedShares",
+      message: "Generated shares must be greater or equal to required shares.",
+    });
+  }
+  return errors;
+};
 
+/**
+ * State
+ */
+const state = ref<Form>({ secret: "", requiredShares: 3, generatedShares: 5 });
 const shares = ref<string[] | null>(null);
 
+/**
+ * Methods
+ */
 async function onSubmit() {
   const { secret, requiredShares, generatedShares } = state.value;
 
@@ -68,5 +89,17 @@ async function onSubmit() {
   });
 
   shares.value = response;
+}
+
+function copyToClipboard(text: string) {
+  navigator.clipboard.writeText(text);
+
+  // Show a toast
+  toast.add({
+    icon: "i-heroicons-clipboard-document-check-20-solid",
+    title: "Copied",
+    description: "The share has been copied to the clipboard.",
+    timeout: 2000,
+  });
 }
 </script>

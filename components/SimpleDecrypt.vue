@@ -1,22 +1,32 @@
 <template>
   <UForm :schema="formSchema" :state="state" @submit="onSubmit">
-    <UFormGroup label="Secret" name="secret" class="mb-3">
+    <UFormGroup label="Secret" name="secret">
       <UTextarea
         v-for="share in state.shares"
         :key="share.id"
         :model-value="share.value"
-        @update:model-value="getShareById(share.id).value = $event"
+        @update:model-value="updateShareValueById(share.id, $event)"
         color="primary"
         variant="outline"
         autoresize
         :maxrows="5"
+        class="mb-3"
       />
     </UFormGroup>
 
     <div class="flex gap-2">
-      <UButton @click="addShares()">
-        <UIcon name="i-heroicons-plus-20-solid" />
-      </UButton>
+      <UTooltip text="Remove share field">
+        <UButton @click="removeShares()">
+          <UIcon name="i-heroicons-minus-20-solid" />
+        </UButton>
+      </UTooltip>
+
+      <UTooltip text="Add share field">
+        <UButton @click="addShares()">
+          <UIcon name="i-heroicons-plus-20-solid" />
+        </UButton>
+      </UTooltip>
+
       <UButton type="submit">Decrypt</UButton>
     </div>
   </UForm>
@@ -37,6 +47,9 @@ import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { invoke } from "@tauri-apps/api/core";
 
+/**
+ * Schema
+ */
 const formSchema = z.object({
   shares: z.array(
     z.object({
@@ -47,6 +60,9 @@ const formSchema = z.object({
 });
 type Form = z.infer<typeof formSchema>;
 
+/**
+ * State
+ */
 const state = ref<Form>({
   shares: [
     {
@@ -56,12 +72,16 @@ const state = ref<Form>({
   ],
 });
 
-console.log(state.value);
-
 const secret = ref<string | null>(null);
 
-function getShareById(id: string) {
-  return state.value.shares.find((share) => share.id === id);
+/**
+ * Methods
+ */
+function updateShareValueById(id: string, value: string) {
+  const share = state.value.shares.find((share) => share.id === id);
+  if (share) {
+    share.value = value;
+  }
 }
 
 function addShares() {
@@ -71,16 +91,20 @@ function addShares() {
   });
 }
 
+function removeShares() {
+  if (state.value.shares.length > 1) {
+    state.value.shares.pop();
+  }
+}
+
 async function onSubmit() {
-  console.log(state.value);
+  secret.value = null;
 
   const { shares } = state.value;
 
   const response = await invoke<string>("simple_combine", {
     shares: shares.map((share) => share.value),
   });
-
-  console.log(response);
 
   secret.value = response;
 }

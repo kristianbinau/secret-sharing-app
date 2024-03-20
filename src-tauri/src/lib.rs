@@ -164,7 +164,7 @@ mod tests {
         }
     }
 
-        #[test]
+    #[test]
     fn test_simple_flow_random() {
         // Test with random secret, threshold and shares
         let mut rng = thread_rng();

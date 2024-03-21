@@ -2,7 +2,7 @@
   "name": "secret-sharing-app",
   "description": "A secret sharing app built with Nuxt.js and Tauri",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "build": "nuxt build",

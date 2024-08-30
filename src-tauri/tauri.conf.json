@@ -1,7 +1,7 @@
 {
   "productName": "secret-sharing-app",
   "version": "0.0.1",
-  "identifier": "me.binau.dev.secret-sharing-app",
+  "identifier": "me.binau.dev.secretsharingapp",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run generate",

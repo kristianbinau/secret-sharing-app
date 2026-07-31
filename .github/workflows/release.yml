@@ -102,7 +102,7 @@ jobs:
 
   finalize-release:
     name: Generate SHA256 checksums
-    needs: publish-tauri
+    needs: [publish-tauri, release-please]
     runs-on: ubuntu-latest
     permissions:
       contents: write

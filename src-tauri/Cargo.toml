@@ -12,15 +12,14 @@ name = "secret_sharing_app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.0.0-rc", features = [] }
+tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2.0.0-rc", features = [] }
-tauri-plugin-shell = "2.0.0-rc"
+tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-sharks = "0.5.0"
-base64 = "0.22.0"
+blahaj = "0.6"
+base64 = "0.23"
 
 [dev-dependencies]
-rand = "0.8.5"
+rand = "0.9"

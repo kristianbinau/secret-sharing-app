@@ -1,6 +1,6 @@
 <template>
   <UForm :schema="formSchema" :validate="validate" :state="state" @submit="onSubmit">
-    <UFormGroup label="Secret" name="secret" class="mb-3">
+    <UFormField label="Secret" name="secret" class="mb-3">
       <UTextarea
         v-model="state.secret"
         color="primary"
@@ -8,16 +8,16 @@
         autoresize
         :maxrows="5"
       />
-    </UFormGroup>
+    </UFormField>
 
     <div>
-      <UFormGroup label="Required Shares" name="requiredShares" class="mb-3">
+      <UFormField label="Required Shares" name="requiredShares" class="mb-3">
         <UInput v-model="state.requiredShares" type="number" />
-      </UFormGroup>
+      </UFormField>
 
-      <UFormGroup label="Generated Shares" name="generatedShares" class="mb-3">
+      <UFormField label="Generated Shares" name="generatedShares" class="mb-3">
         <UInput v-model="state.generatedShares" type="number" />
-      </UFormGroup>
+      </UFormField>
     </div>
 
     <UButton type="submit">Encrypt</UButton>
@@ -45,7 +45,7 @@
 import { ref } from "vue";
 import { z } from "zod";
 import { invoke } from "@tauri-apps/api/core";
-import type { FormError } from "#ui/types";
+import type { FormError } from "@nuxt/ui";
 
 const toast = useToast();
 
@@ -53,7 +53,7 @@ const toast = useToast();
  * Schema
  */
 const formSchema = z.object({
-  secret: z.string(),
+  secret: z.string().min(1),
   requiredShares: z.number().int().positive().max(255),
   generatedShares: z.number().int().positive().max(255),
 });
@@ -63,7 +63,7 @@ const validate = (state: any): FormError[] => {
   const errors = [];
   if (state.generatedShares < state.requiredShares) {
     errors.push({
-      path: "generatedShares",
+      name: "generatedShares",
       message: "Generated shares must be greater or equal to required shares.",
     });
   }
@@ -99,7 +99,7 @@ function copyToClipboard(text: string) {
     icon: "i-heroicons-clipboard-document-check-20-solid",
     title: "Copied",
     description: "The share has been copied to the clipboard.",
-    timeout: 2000,
+    duration: 2000,
   });
 }
 </script>

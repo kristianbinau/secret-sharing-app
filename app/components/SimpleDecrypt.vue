@@ -1,6 +1,6 @@
 <template>
   <UForm :schema="formSchema" :state="state" @submit="onSubmit">
-    <UFormGroup label="Secret" name="secret">
+    <UFormField label="Secret" name="secret">
       <UTextarea
         v-for="share in state.shares"
         :key="share.id"
@@ -12,7 +12,7 @@
         :maxrows="5"
         class="mb-3"
       />
-    </UFormGroup>
+    </UFormField>
 
     <div class="flex gap-2">
       <UTooltip text="Remove share field">
@@ -53,8 +53,8 @@ import { invoke } from "@tauri-apps/api/core";
 const formSchema = z.object({
   shares: z.array(
     z.object({
-      id: z.string().uuid(),
-      value: z.string().nonempty(),
+      id: z.uuid(),
+      value: z.string().min(1),
     })
   ),
 });

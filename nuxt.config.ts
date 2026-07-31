@@ -1,10 +1,16 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  compatibilityDate: '2026-07-31',
   modules: ['@nuxt/ui'],
   // (optional) Enable the Nuxt devtools
   devtools: { enabled: true },
   // Enable SSG
   ssr: false,
+  css: ['~/assets/css/main.css'],
+  devServer: {
+    // Enables the development server to be discoverable by other devices for mobile development
+    host: '0.0.0.0',
+  },
   vite: {
     // Better support for Tauri CLI output
     clearScreen: false,
@@ -15,9 +21,7 @@ export default defineNuxtConfig({
     server: {
       // Tauri requires a consistent port
       strictPort: true,
-      // Enables the development server to be discoverable by other devices for mobile development
-      host: '0.0.0.0',
-      hmr: {
+      ws: {
         // Use websocket for mobile hot reloading
         protocol: 'ws',
         // Make sure it's available on the network

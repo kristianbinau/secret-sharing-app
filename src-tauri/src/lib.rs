@@ -1,5 +1,5 @@
 use base64::{engine::general_purpose::URL_SAFE, Engine as _};
-use sharks::{Share, Sharks};
+use blahaj::{Share, Sharks};
 use std::str;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
@@ -62,8 +62,8 @@ fn simple_combine(shares: Vec<String>) -> Result<String, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rand::distributions::{Alphanumeric, DistString};
-    use rand::{thread_rng, Rng};
+    use rand::distr::{Alphanumeric, SampleString};
+    use rand::Rng;
 
     #[test]
     fn test_simple_split() {
@@ -167,12 +167,12 @@ mod tests {
     #[test]
     fn test_simple_flow_random() {
         // Test with random secret, threshold and shares
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
         for _ in 0..=100 {
-            let secret_len = rng.gen_range(0..=512);
+            let secret_len = rng.random_range(0..=512);
             let secret = Alphanumeric.sample_string(&mut rng, secret_len);
-            let threshold = rng.gen_range(1..=255);
-            let shares = rng.gen_range(threshold..=255);
+            let threshold = rng.random_range(1..=255);
+            let shares = rng.random_range(threshold..=255);
 
             let result = simple_split(&secret, threshold, shares);
 
@@ -192,7 +192,6 @@ mod tests {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![simple_split, simple_combine])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

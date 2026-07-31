@@ -3,8 +3,6 @@
     <UContainer>
       <slot />
     </UContainer>
-
-    <UNotifications />
   </div>
 </template>
 

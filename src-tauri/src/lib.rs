@@ -318,6 +318,19 @@ fn nested_combine(shares: Vec<String>) -> Result<String, String> {
     Ok(secret.to_string())
 }
 
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![
+            simple_split,
+            simple_combine,
+            nested_split,
+            nested_combine
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -362,7 +375,7 @@ mod tests {
     #[test]
     fn test_simple_combine() {
         let expected_secret = "Hello World!";
-        let shares = vec![
+        let shares = [
             "AR0UGMgRlTD5XNUsyw==".to_string(),
             "AuKHhDmTV5leLgP06A==".to_string(),
             "A7f28J3t4v7IALq8Ag==".to_string(),
@@ -840,17 +853,4 @@ mod tests {
         assert!(all_simple.is_ok());
         assert_eq!(all_simple.unwrap(), secret);
     }
-}
-
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
-    tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![
-            simple_split,
-            simple_combine,
-            nested_split,
-            nested_combine
-        ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
 }

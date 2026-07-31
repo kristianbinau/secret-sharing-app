@@ -25,6 +25,6 @@ shasum -a 256 secret-sharing-app_<version>_<platform>.<ext>
 
 ## Supply Chain
 
-- All third-party GitHub Actions are pinned to commit SHAs (not mutable tags).
+- All third-party GitHub Actions are pinned to immutable SHAs (commit SHAs or annotated tag object SHAs, not mutable tags).
 - Dependency advisories are scanned via `cargo audit`, `npm audit`, GitHub CodeQL, and `cargo deny`.
 - Tool versions (Node, Rust) are pinned via `mise.toml` for reproducible builds.

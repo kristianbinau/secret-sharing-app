@@ -12,11 +12,11 @@
 
     <template v-if="isSimple">
       <UFormField label="Required Shares" name="requiredShares" class="mb-3">
-        <UInput v-model.number="state.groups[0].threshold" type="number" min="1" max="255" />
+        <UInput v-model.number="state.groups[0]!.threshold" type="number" min="1" max="255" />
       </UFormField>
 
       <UFormField label="Generated Shares" name="generatedShares" class="mb-3">
-        <UInput v-model.number="state.groups[0].count" type="number" min="1" max="255" />
+        <UInput v-model.number="state.groups[0]!.count" type="number" min="1" max="255" />
       </UFormField>
 
       <UButton variant="outline" @click="addGroup">
@@ -105,7 +105,7 @@ const shares = ref<string[] | null>(null);
 const isSimple = computed(
   () =>
     state.value.groups.length === 1 &&
-    state.value.groups[0].groups.length === 0,
+    state.value.groups[0]!.groups.length === 0,
 );
 
 watch(isSimple, (simple) => {
@@ -118,7 +118,7 @@ const totalShares = computed(() => countLeafShares(state.value.groups));
 
 const summary = computed(() => {
   if (isSimple.value) {
-    const g = state.value.groups[0];
+    const g = state.value.groups[0]!;
     return `${g.threshold} of ${g.count} shares required`;
   }
   return buildAccessStructure(state.value.topThreshold, state.value.groups);
@@ -172,8 +172,8 @@ async function onSubmit() {
     if (isSimple.value) {
       const response = await invoke<string[]>("simple_split", {
         secret: secret,
-        threshold: groups[0].threshold,
-        shares: groups[0].count,
+        threshold: groups[0]!.threshold,
+        shares: groups[0]!.count,
       });
       shares.value = response;
     } else {

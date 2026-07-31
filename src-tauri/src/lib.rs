@@ -201,6 +201,9 @@ fn decode_share_from_bytes(bytes: &[u8]) -> Result<ParsedShare, String> {
     })
 }
 
+type ShareEntry = (Vec<u8>, Vec<u8>, Vec<u8>, u8);
+type GroupedShares = HashMap<Vec<u8>, Vec<(Vec<u8>, Vec<u8>, u8)>>;
+
 #[tauri::command]
 fn nested_combine(shares: Vec<String>) -> Result<String, String> {
     if shares.is_empty() {
@@ -248,7 +251,7 @@ fn nested_combine(shares: Vec<String>) -> Result<String, String> {
         }
     }
 
-    let mut current: Vec<(Vec<u8>, Vec<u8>, Vec<u8>, u8)> = parsed_shares
+    let mut current: Vec<ShareEntry> = parsed_shares
         .iter()
         .map(|ps| {
             (
@@ -261,15 +264,16 @@ fn nested_combine(shares: Vec<String>) -> Result<String, String> {
         .collect();
 
     for step in 0..=depth {
-        let mut groups: HashMap<Vec<u8>, Vec<(Vec<u8>, Vec<u8>, u8)>> = HashMap::new();
+        let mut groups: GroupedShares = HashMap::new();
         for (path, bytes, thresholds, threshold) in &current {
-            groups
-                .entry(path.clone())
-                .or_default()
-                .push((bytes.clone(), thresholds.clone(), *threshold));
+            groups.entry(path.clone()).or_default().push((
+                bytes.clone(),
+                thresholds.clone(),
+                *threshold,
+            ));
         }
 
-        let mut next: Vec<(Vec<u8>, Vec<u8>, Vec<u8>, u8)> = Vec::new();
+        let mut next: Vec<ShareEntry> = Vec::new();
 
         for (path, group_shares) in &groups {
             let threshold = group_shares[0].2;
@@ -318,7 +322,8 @@ fn nested_combine(shares: Vec<String>) -> Result<String, String> {
 mod tests {
     use super::*;
     use rand::distr::{Alphanumeric, SampleString};
-    use rand::Rng;
+    use rand::rngs::StdRng;
+    use rand::{Rng, SeedableRng};
     use std::collections::BTreeMap;
 
     #[test]
@@ -383,17 +388,18 @@ mod tests {
     #[test]
     fn test_simple_flow_loop() {
         let secret = "Hello World!";
+        let mut rng = StdRng::seed_from_u64(42);
 
         // Test with all combinations of threshold and shares
         for threshold in 1..=255 {
-            // 80% change of skipping this loop
-            if rand::random::<u8>() < 204 {
+            // 80% chance of skipping this loop
+            if rng.random::<u8>() < 204 {
                 continue;
             }
 
             for shares in threshold..=255 {
-                // 80% change of skipping this loop
-                if rand::random::<u8>() < 204 {
+                // 80% chance of skipping this loop
+                if rng.random::<u8>() < 204 {
                     continue;
                 }
 
@@ -423,7 +429,7 @@ mod tests {
     #[test]
     fn test_simple_flow_random() {
         // Test with random secret, threshold and shares
-        let mut rng = rand::rng();
+        let mut rng = StdRng::seed_from_u64(42);
         for _ in 0..=100 {
             let secret_len = rng.random_range(0..=512);
             let secret = Alphanumeric.sample_string(&mut rng, secret_len);
@@ -448,8 +454,16 @@ mod tests {
     fn test_nested_split_simple() {
         let secret = "Hello World!";
         let groups = vec![
-            GroupConfig { threshold: 3, count: 5, groups: vec![] },
-            GroupConfig { threshold: 3, count: 5, groups: vec![] },
+            GroupConfig {
+                threshold: 3,
+                count: 5,
+                groups: vec![],
+            },
+            GroupConfig {
+                threshold: 3,
+                count: 5,
+                groups: vec![],
+            },
         ];
 
         let result = nested_split(secret, 1, groups);
@@ -466,10 +480,18 @@ mod tests {
     fn test_nested_split_deep() {
         let secret = "Deep nested secret";
         let sub_groups: Vec<GroupConfig> = (0..4)
-            .map(|_| GroupConfig { threshold: 3, count: 5, groups: vec![] })
+            .map(|_| GroupConfig {
+                threshold: 3,
+                count: 5,
+                groups: vec![],
+            })
             .collect();
         let groups: Vec<GroupConfig> = (0..3)
-            .map(|_| GroupConfig { threshold: 2, count: 4, groups: sub_groups.clone() })
+            .map(|_| GroupConfig {
+                threshold: 2,
+                count: 4,
+                groups: sub_groups.clone(),
+            })
             .collect();
 
         let result = nested_split(secret, 2, groups);
@@ -519,8 +541,16 @@ mod tests {
         let secret = "Partial test";
 
         let groups = vec![
-            GroupConfig { threshold: 3, count: 5, groups: vec![] },
-            GroupConfig { threshold: 3, count: 5, groups: vec![] },
+            GroupConfig {
+                threshold: 3,
+                count: 5,
+                groups: vec![],
+            },
+            GroupConfig {
+                threshold: 3,
+                count: 5,
+                groups: vec![],
+            },
         ];
         let shares = nested_split(secret, 2, groups).unwrap();
 
@@ -542,7 +572,11 @@ mod tests {
         let result = nested_combine(group1_shares);
         assert!(result.is_err());
 
-        let groups2 = vec![GroupConfig { threshold: 3, count: 5, groups: vec![] }];
+        let groups2 = vec![GroupConfig {
+            threshold: 3,
+            count: 5,
+            groups: vec![],
+        }];
         let shares2 = nested_split(secret, 1, groups2).unwrap();
 
         let result2 = nested_combine(shares2[0..2].to_vec());
@@ -561,7 +595,7 @@ mod tests {
 
     #[test]
     fn test_nested_round_trip() {
-        let mut rng = rand::rng();
+        let mut rng = StdRng::seed_from_u64(42);
 
         for _ in 0..=20 {
             let secret_len = rng.random_range(1..=256);
@@ -572,7 +606,11 @@ mod tests {
                 .map(|_| {
                     let threshold = rng.random_range(1u8..=5u8);
                     let count = rng.random_range(threshold..=10u8);
-                    GroupConfig { threshold, count, groups: vec![] }
+                    GroupConfig {
+                        threshold,
+                        count,
+                        groups: vec![],
+                    }
                 })
                 .collect();
             let top_threshold = rng.random_range(1u8..=group_count);
@@ -582,7 +620,11 @@ mod tests {
             let shares = result.unwrap();
 
             let combine = nested_combine(shares);
-            assert!(combine.is_ok(), "nested_combine failed: {:?}", combine.err());
+            assert!(
+                combine.is_ok(),
+                "nested_combine failed: {:?}",
+                combine.err()
+            );
             assert_eq!(combine.unwrap(), secret);
         }
 
@@ -594,11 +636,19 @@ mod tests {
                 .map(|_| {
                     let threshold = rng.random_range(1u8..=4u8);
                     let count = rng.random_range(threshold..=6u8);
-                    GroupConfig { threshold, count, groups: vec![] }
+                    GroupConfig {
+                        threshold,
+                        count,
+                        groups: vec![],
+                    }
                 })
                 .collect();
             let groups: Vec<GroupConfig> = (0..3)
-                .map(|_| GroupConfig { threshold: 2, count: 3, groups: sub_groups.clone() })
+                .map(|_| GroupConfig {
+                    threshold: 2,
+                    count: 3,
+                    groups: sub_groups.clone(),
+                })
                 .collect();
 
             let result = nested_split(&secret, 2, groups);
@@ -606,7 +656,11 @@ mod tests {
             let shares = result.unwrap();
 
             let combine = nested_combine(shares);
-            assert!(combine.is_ok(), "nested_combine failed: {:?}", combine.err());
+            assert!(
+                combine.is_ok(),
+                "nested_combine failed: {:?}",
+                combine.err()
+            );
             assert_eq!(combine.unwrap(), secret);
         }
     }
@@ -615,26 +669,66 @@ mod tests {
     fn test_nested_validation() {
         let secret = "test";
 
-        let result = nested_split(secret, 0, vec![GroupConfig { threshold: 1, count: 1, groups: vec![] }]);
+        let result = nested_split(
+            secret,
+            0,
+            vec![GroupConfig {
+                threshold: 1,
+                count: 1,
+                groups: vec![],
+            }],
+        );
         assert!(result.is_err());
 
         let result = nested_split(secret, 1, vec![]);
         assert!(result.is_err());
 
-        let result = nested_split(secret, 3, vec![GroupConfig { threshold: 1, count: 1, groups: vec![] }]);
+        let result = nested_split(
+            secret,
+            3,
+            vec![GroupConfig {
+                threshold: 1,
+                count: 1,
+                groups: vec![],
+            }],
+        );
         assert!(result.is_err());
 
-        let result = nested_split(secret, 1, vec![GroupConfig { threshold: 0, count: 1, groups: vec![] }]);
+        let result = nested_split(
+            secret,
+            1,
+            vec![GroupConfig {
+                threshold: 0,
+                count: 1,
+                groups: vec![],
+            }],
+        );
         assert!(result.is_err());
 
-        let result = nested_split(secret, 1, vec![GroupConfig { threshold: 3, count: 2, groups: vec![] }]);
+        let result = nested_split(
+            secret,
+            1,
+            vec![GroupConfig {
+                threshold: 3,
+                count: 2,
+                groups: vec![],
+            }],
+        );
         assert!(result.is_err());
 
-        let result = nested_split(secret, 1, vec![GroupConfig {
-            threshold: 1,
-            count: 3,
-            groups: vec![GroupConfig { threshold: 1, count: 1, groups: vec![] }],
-        }]);
+        let result = nested_split(
+            secret,
+            1,
+            vec![GroupConfig {
+                threshold: 1,
+                count: 3,
+                groups: vec![GroupConfig {
+                    threshold: 1,
+                    count: 1,
+                    groups: vec![],
+                }],
+            }],
+        );
         assert!(result.is_err());
     }
 
@@ -643,9 +737,21 @@ mod tests {
         let secret = "Different thresholds";
 
         let groups = vec![
-            GroupConfig { threshold: 3, count: 5, groups: vec![] },
-            GroupConfig { threshold: 3, count: 5, groups: vec![] },
-            GroupConfig { threshold: 3, count: 5, groups: vec![] },
+            GroupConfig {
+                threshold: 3,
+                count: 5,
+                groups: vec![],
+            },
+            GroupConfig {
+                threshold: 3,
+                count: 5,
+                groups: vec![],
+            },
+            GroupConfig {
+                threshold: 3,
+                count: 5,
+                groups: vec![],
+            },
         ];
 
         let result = nested_split(secret, 1, groups);
@@ -662,16 +768,32 @@ mod tests {
                 threshold: 2,
                 count: 2,
                 groups: vec![
-                    GroupConfig { threshold: 1, count: 2, groups: vec![] },
-                    GroupConfig { threshold: 1, count: 3, groups: vec![] },
+                    GroupConfig {
+                        threshold: 1,
+                        count: 2,
+                        groups: vec![],
+                    },
+                    GroupConfig {
+                        threshold: 1,
+                        count: 3,
+                        groups: vec![],
+                    },
                 ],
             },
             GroupConfig {
                 threshold: 2,
                 count: 2,
                 groups: vec![
-                    GroupConfig { threshold: 2, count: 4, groups: vec![] },
-                    GroupConfig { threshold: 1, count: 2, groups: vec![] },
+                    GroupConfig {
+                        threshold: 2,
+                        count: 4,
+                        groups: vec![],
+                    },
+                    GroupConfig {
+                        threshold: 1,
+                        count: 2,
+                        groups: vec![],
+                    },
                 ],
             },
         ];
@@ -692,7 +814,11 @@ mod tests {
         let nested_shares = nested_split(
             secret,
             1,
-            vec![GroupConfig { threshold: 2, count: 3, groups: vec![] }],
+            vec![GroupConfig {
+                threshold: 2,
+                count: 3,
+                groups: vec![],
+            }],
         )
         .unwrap();
 
@@ -719,7 +845,12 @@ mod tests {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![simple_split, simple_combine, nested_split, nested_combine])
+        .invoke_handler(tauri::generate_handler![
+            simple_split,
+            simple_combine,
+            nested_split,
+            nested_combine
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

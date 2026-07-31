@@ -1,0 +1,33 @@
+[advisories]
+# All ignored advisories are in transitive dependencies of Tauri 2.11
+# and cannot be upgraded directly. Re-evaluate when Tauri updates.
+ignore = [
+    "RUSTSEC-2026-0007",  # bytes 1.7.1 - integer overflow in BytesMut::reserve
+    "RUSTSEC-2025-0024",  # crossbeam-channel 0.5.13 - double free on Drop
+    "RUSTSEC-2024-0421",  # idna 0.5.0 - accepts invalid Punycode labels
+    "RUSTSEC-2026-0195",  # quick-xml 0.32.0 - memory exhaustion DoS
+    "RUSTSEC-2026-0194",  # quick-xml 0.32.0 - quadratic run time
+]
+# Only fail on unmaintained crates that are workspace members, not transitive deps
+unmaintained = "workspace"
+# Warn on yanked crates (transitive deps of Tauri)
+yanked = "warn"
+
+[licenses]
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-DFS-2016",
+    "Unicode-3.0",
+    "Zlib",
+    "CC0-1.0",
+    "MPL-2.0",
+]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "allow"

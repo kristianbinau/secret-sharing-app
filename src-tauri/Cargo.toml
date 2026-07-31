@@ -3,6 +3,7 @@ name = "secret_sharing_app"
 version = "0.0.1"
 description = "A secret sharing app built with Nuxt.js and Tauri"
 authors = ["you"]
+license = "MIT"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

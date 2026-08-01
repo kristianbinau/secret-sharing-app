@@ -2,6 +2,7 @@
   "name": "secret-sharing-app",
   "description": "A secret sharing app built with Nuxt.js and Tauri",
   "private": true,
+  "license": "MIT",
   "version": "0.0.2",
   "type": "module",
   "scripts": {

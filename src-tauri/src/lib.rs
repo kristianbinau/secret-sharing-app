@@ -336,7 +336,7 @@ mod tests {
     use super::*;
     use rand::distr::{Alphanumeric, SampleString};
     use rand::rngs::StdRng;
-    use rand::{Rng, SeedableRng};
+    use rand::{RngExt, SeedableRng};
     use std::collections::BTreeMap;
 
     #[test]

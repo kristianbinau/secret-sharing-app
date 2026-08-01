@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.3](https://github.com/kristianbinau/secret-sharing-app/compare/v0.0.2...v0.0.3) (2026-08-01)
+
+
+### Bug Fixes
+
+* add release-please to finalize-release needs for tag_name output ([13ad711](https://github.com/kristianbinau/secret-sharing-app/commit/13ad7118a6d67e30a99dd10d2d21d95779b2591f))
+
 ## [0.0.2](https://github.com/kristianbinau/secret-sharing-app/compare/v0.0.1...v0.0.2) (2026-07-31)
 
 

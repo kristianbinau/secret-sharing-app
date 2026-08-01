@@ -1,6 +1,6 @@
 [package]
 name = "secret_sharing_app"
-version = "0.0.2"
+version = "0.0.3"
 description = "A secret sharing app built with Nuxt.js and Tauri"
 authors = ["you"]
 license = "MIT"

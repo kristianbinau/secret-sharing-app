@@ -15,9 +15,9 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "nuxt": "^4.0.0",
+    "nuxt": "^4.5.2",
     "@nuxt/ui": "^4.0.0",
-    "vue": "^3.5.0",
+    "vue": "^3.5.41",
     "vue-router": "^5.0.0",
     "zod": "^4.0.0",
     "@tauri-apps/api": "^2.0.0",
